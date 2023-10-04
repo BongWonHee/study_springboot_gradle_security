@@ -17,11 +17,12 @@
 
     <!-- Main Content -->
 
-    <form action="/files/updateMulti" method="post" id="insertForm" enctype="multipart/form-data">
+    <form action="/files/update" method="post" id="insertForm" enctype="multipart/form-data">
         <div class="container mt-5">
             <div class="container mt-4">
                 <div class="row">
                     <h1>update Form</h1>
+                    <input type="hidden" name="storePath" value="${storePath}">
 
                     <div class="mb-3">
                         <label for="title" class="form-label">Title</label>
@@ -33,27 +34,24 @@
                         <input type="hidden" name="content" id="contentInput" />
                     </div>
                     <%
-                    ArrayList attachfiles = (ArrayList)request.getAttribute("attachfiles");
+                    HashMap attachfile = (HashMap)request.getAttribute("attachfile");
 
-                    HashMap attachfile = null;
-                    for (int i = 0; i < 2; i += 1) {
-                        if ((attachfiles.size()-1 >= i) && (attachfiles.get(i) != null)) {
-                            attachfile = new HashMap();
-                            attachfile = (HashMap)attachfiles.get(i);
-                            String fileUnique = (String)attachfile.get("FILE_UNIQUE");
-                            String fileName = (String)attachfile.get("FILE_NAME");
-                        }
+                    String fileUnique = "";
+                    String fileName = "";
+                    if(attachfile != null){
+                        fileUnique = (String)attachfile.get("FILE_UNIQUE");
+                        fileName = (String)attachfile.get("FILE_NAME");
+                    }
                     %>
                     <div class="mb-3">
-                        <label for="fileUpload_${i}" class="form-label">File Upload</label>
-                        <input type="file" class="form-control-file" id="fileUpload_${i}" name="fileUpload"  value="${fileName}" />
+
+                        <label for="fileUpload_0" class="form-label">File Upload</label>
+                        <input type="file" class="form-control-file" id="fileUpload_0" name="multipartFile"/>
+                        <span><a href="${remoteServerUrl}<%= fileName %>"><%= fileUnique %></a></span>
                     </div>
-                    <%
-                    }
-                    %>                    
-
-                    <button type="submit" class="btn btn-primary">Submit</button>
-
+                    <div class="d-inline-block">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -69,15 +67,15 @@
     <script>
         let quill = new Quill('#editor', {
             theme: 'snow'
-        }); //대상 지정과 CSS적용
+        }); // 대상 지정과 css 적용
 
-        quill.setContents(${content}); // jsp 문법을 해석하는 와중에 생기는 오류임.
+        quill.setContents(${content});
 
         // Set hidden input value before form submission
         let form = document.querySelector('#insertForm');
         form.onsubmit = function () {
             var contentInput = document.querySelector('#contentInput');
-            contentInput.value = quill.root.innerHTML;
+            contentInput.value = JSON.stringify(quill.getContents());
             return true;
         };
     </script>

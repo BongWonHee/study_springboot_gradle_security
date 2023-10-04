@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>update Form</title>
+    <title>read Form</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
@@ -17,15 +17,16 @@
 
     <!-- Main Content -->
 
-    <form action="/files/updateMulti" method="post" id="insertForm" enctype="multipart/form-data">
+    <form method="post" id="insertForm" enctype="multipart/form-data">
         <div class="container mt-5">
             <div class="container mt-4">
                 <div class="row">
-                    <h1>update Form</h1>
+                    <h1>read Form</h1>
+                    <input type="hidden" name="storePath" value="${storePath}">
 
                     <div class="mb-3">
                         <label for="title" class="form-label">Title</label>
-                        <input type="text" class="form-control" id="title" name="title" value="${title}">
+                        <input type="text" class="form-control" id="title" name="title" value="${title}" readonly>
                     </div>
                     <div class="mb-3">
                         <label for="editor" class="form-label">Content</label>
@@ -33,26 +34,24 @@
                         <input type="hidden" name="content" id="contentInput" />
                     </div>
                     <%
-                    ArrayList attachfiles = (ArrayList)request.getAttribute("attachfiles");
+                    HashMap attachfile = (HashMap)request.getAttribute("attachfile");
 
-                    HashMap attachfile = null;
-                    for (int i = 0; i < 2; i += 1) {
-                        if ((attachfiles.size()-1 >= i) && (attachfiles.get(i) != null)) {
-                            attachfile = new HashMap();
-                            attachfile = (HashMap)attachfiles.get(i);
-                            String fileUnique = (String)attachfile.get("FILE_UNIQUE");
-                            String fileName = (String)attachfile.get("FILE_NAME");
-                        }
+                    String fileUnique = "";
+                    String fileName = "";
+                    if(attachfile != null){
+                        fileUnique = (String)attachfile.get("FILE_UNIQUE");
+                        fileName = (String)attachfile.get("FILE_NAME");
+                    }
                     %>
                     <div class="mb-3">
-                        <label for="fileUpload_${i}" class="form-label">File Upload</label>
-                        <input type="file" class="form-control-file" id="fileUpload_${i}" name="fileUpload"  value="${fileName}" />
+                        <label for="fileUpload_0" class="form-label">File Upload</label>
+                        <span><a href="${remoteServerUrl}<%= fileName %>"><%= fileUnique %></a></span>
                     </div>
-                    <%
-                    }
-                    %>                    
 
-                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <div class="d-inline-block">
+                        <button type="submit" class="btn btn-primary" formaction="/files/form" formmethod="get">Insert</button>
+                        <button type="submit" class="btn btn-primary" formaction="/files/update" formmethod="Post">Update</button>
+                    </div>
 
                 </div>
             </div>
@@ -68,16 +67,18 @@
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script>
         let quill = new Quill('#editor', {
-            theme: 'snow'
-        }); //대상 지정과 CSS적용
+            readOnly: true,
+        }); // 대상 지정과 css 적용
 
-        quill.setContents(${content}); // jsp 문법을 해석하는 와중에 생기는 오류임.
+        quill.setContents(${content});
+        // 다시 수정 가능 상태로 변경하기
+        // quill.enable();
 
         // Set hidden input value before form submission
         let form = document.querySelector('#insertForm');
         form.onsubmit = function () {
             var contentInput = document.querySelector('#contentInput');
-            contentInput.value = quill.root.innerHTML;
+            contentInput.value = JSON.stringify(quill.getContents());
             return true;
         };
     </script>
